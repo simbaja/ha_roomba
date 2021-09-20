@@ -10,3 +10,5 @@ DEFAULT_DELAY = 1
 ROOMBA_SESSION = "roomba_session"
 BLID = "blid_key"
 CANCEL_STOP = "cancel_stop"
+
+SERVICE_CLEAN_ROOMS = "clean_rooms"

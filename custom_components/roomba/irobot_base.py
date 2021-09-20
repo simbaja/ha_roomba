@@ -208,6 +208,17 @@ class IRobotVacuum(IRobotEntity, StateVacuumEntity):
             return NOT_READY_MAP[self.not_ready_code]
         except KeyError as e:
             return f"Unknown message type {self.not_ready_code}"
+
+    @property
+    def pmaps(self):
+        state = self.vacuum_state
+        ret = []
+        if pmap_state := state.get("pmaps",[]):
+            for map in pmap_state:
+                for k, v in map.items():
+                    ret.append(k)
+                    pass
+        return ret
   
     @property
     def extra_state_attributes(self):
@@ -226,13 +237,11 @@ class IRobotVacuum(IRobotEntity, StateVacuumEntity):
         # get the last command (to help with identifying rooms/zones)
         state_attrs[ATTR_LAST_COMMAND] = json.dumps(state.get("lastCommand",""))
 
+        #list the maps
         map_id = 0
-        if pmaps := state.get("pmaps",[]):
-            for map in pmaps:
-                for k, v in map.items():
-                    state_attrs[f"{ATTR_PMAP}{map_id}"] = k
-                    pass
-                map_id += 1
+        for pmap in self.pmaps:
+            state_attrs[f"{ATTR_PMAP}{map_id}"] = pmap
+            map_id += 1
 
         # Get total statistics
         (
@@ -360,3 +369,14 @@ class IRobotVacuum(IRobotEntity, StateVacuumEntity):
         await self.hass.async_add_executor_job(
             self.vacuum.send_command, command, params
         )
+
+    async def async_clean_rooms(self, map, regions):
+        #rooms_obj = json.load(f"{{rooms: {rooms}}}")
+
+        params = {
+            "ordered": 1,
+            "pmap_id": self.pmaps[0] if not map else map,
+            "regions": regions
+        }
+#            "regions": rooms_obj["rooms"]
+        await self.async_send_command('start', params)

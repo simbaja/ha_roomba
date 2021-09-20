@@ -1,0 +1,26 @@
+# Roomba Services
+
+clean_rooms:
+  name: Clean Rooms
+  description: >
+    Cleans individual rooms as defined on the map.  List of regions/map can 
+    be obtained by initiating a room cleaning from the app and then reviewing
+    the last command that is part of the state.  Rooms will be in the order
+    that was selected in the map (only IDs are provided by the API)
+  target:
+    entity:
+      integration: "roomba"
+      domain: "vacuum"
+  fields:
+    pmap:
+      name: Map
+      description: The map to use for the cleaning.
+      required: true
+    regions:
+      name: Regions
+      description: |
+        The rooms/zones to clean.  Should take the form of a string: 
+        "[{region_id: xx, type: rId},{region_id: yy, type: zId}]"
+        Rooms are type: 'rId'
+        Zones are type: 'zId'
+      example: '[{"region_id": "11", "type": "rid"},{"region_id": "13", "type": "rid"}]'
