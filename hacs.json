@@ -1,0 +1,6 @@
+{
+  "name": "Roomba",
+  "homeassistant": "2021.9.0",
+  "domains": ["binary_sensor", "sensor", "vacuum"],
+  "iot_class": "Local Push"
+}
