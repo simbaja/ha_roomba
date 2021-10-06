@@ -31,6 +31,7 @@ import homeassistant.util.dt as dt_util
 
 from . import roomba_reported_state
 from .const import DOMAIN
+from roombapy import Roomba
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,6 +51,10 @@ ATTR_ERROR_CODE = "error_code"
 ATTR_POSITION = "position"
 ATTR_SOFTWARE_VERSION = "software_version"
 ATTR_PMAP = "pmap_"
+ATTR_MAP_CURRENT_PMAP = "map_current_id"
+ATTR_MAP_MIN_COORDS = "map_min_coords"
+ATTR_MAP_MAX_COORDS = "map_max_coords"
+ATTR_DOCKED = "docked"
 
 # Commonly supported features
 SUPPORT_IROBOT = (
@@ -88,7 +93,7 @@ NOT_READY_MAP = {
 class IRobotEntity(Entity):
     """Base class for iRobot Entities."""
 
-    def __init__(self, roomba, blid):
+    def __init__(self, roomba: Roomba, blid):
         """Initialize the iRobot handler."""
         self.vacuum = roomba
         self._blid = blid
@@ -234,6 +239,8 @@ class IRobotVacuum(IRobotEntity, StateVacuumEntity):
         # Set legacy status to avoid break changes
         state_attrs[ATTR_STATUS] = self.vacuum.current_state
 
+        state_attrs[ATTR_DOCKED] = self.vacuum.docked
+
         # get the last command (to help with identifying rooms/zones)
         state_attrs[ATTR_LAST_COMMAND] = json.dumps(state.get("lastCommand",""))
 
@@ -263,13 +270,13 @@ class IRobotVacuum(IRobotEntity, StateVacuumEntity):
             ) = self.get_cleaning_status(state)
 
         # Error
-        if self.vacuum.error_code != 0:
+        if self.vacuum.error_num != 0:
             state_attrs[ATTR_ERROR] = self.vacuum.error_message
-            state_attrs[ATTR_ERROR_CODE] = self.vacuum.error_code
+            state_attrs[ATTR_ERROR_CODE] = self.vacuum.error_num
 
-        if self.not_ready_code != 0:
-            state_attrs[ATTR_NOT_READY] = self.not_ready
-            state_attrs[ATTR_NOT_READY_CODE] = self.not_ready_code
+        if self.vacuum.not_ready_num != 0:
+            state_attrs[ATTR_NOT_READY] = self.vacuum.not_ready_message
+            state_attrs[ATTR_NOT_READY_CODE] = self.vacuum.not_ready_num
 
         # Not all Roombas expose position data
         # https://github.com/koalazak/dorita980/issues/48
@@ -282,6 +289,13 @@ class IRobotVacuum(IRobotEntity, StateVacuumEntity):
             if all(item is not None for item in (pos_x, pos_y, theta)):
                 position = f"({pos_x}, {pos_y}, {theta})"
             state_attrs[ATTR_POSITION] = position
+
+            #get map information
+            min_c = self.vacuum.min_map_coords
+            max_c = self.vacuum.max_map_coords
+            state_attrs[ATTR_MAP_CURRENT_PMAP] = self.vacuum.current_pmap_id
+            state_attrs[ATTR_MAP_MIN_COORDS] = f"({min_c[0]},{min_c[1]})"
+            state_attrs[ATTR_MAP_MAX_COORDS] = f"({max_c[0]},{max_c[1]})"
 
         return state_attrs
 

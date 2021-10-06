@@ -2,6 +2,8 @@
 import asyncio
 import logging
 
+import json
+
 import async_timeout
 from roombapy import RoombaConnectionError, RoombaFactory
 
@@ -13,6 +15,12 @@ from homeassistant.const import (
     CONF_PASSWORD,
     EVENT_HOMEASSISTANT_STOP,
 )
+import voluptuous as vol
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.config_validation import ensure_list, positive_int, string
+from voluptuous.error import Invalid
+from voluptuous.validators import All, Range
 
 from .const import (
     BLID,
@@ -22,10 +30,56 @@ from .const import (
     DOMAIN,
     PLATFORMS,
     ROOMBA_SESSION,
+    CONF_MAPS,
+    CONF_PMAP_ID,
+    CONF_MAP_MIN_X,
+    CONF_MAP_MAX_X,
+    CONF_MAP_MIN_Y,
+    CONF_MAP_MAX_Y,
+    CONF_MAP_ROTATE_ANGLE,
+    CONF_IMAGE_WIDTH,
+    CONF_IMAGE_HEIGHT
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__) 
 
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Optional(CONF_MAPS): vol.All(
+                    ensure_list,
+                    [
+                        {
+                            vol.Required(CONF_PMAP_ID): str,
+                            vol.Optional(CONF_MAP_MIN_X, default=-2000): int,
+                            vol.Optional(CONF_MAP_MAX_X, default=2000): int,
+                            vol.Optional(CONF_MAP_MIN_Y, default=-2000): int,
+                            vol.Optional(CONF_MAP_MAX_Y, default=2000): int,
+                            vol.Optional(CONF_MAP_ROTATE_ANGLE, default=0.0): vol.All(
+                                float, Range(min=-360.0, max=360.0)
+                            ),                                                        
+                            vol.Optional(CONF_IMAGE_WIDTH, default=1024): positive_int,
+                            vol.Optional(CONF_IMAGE_HEIGHT, default=1024): positive_int
+                        }
+                    ],
+                ),
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA
+)
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the Withings component."""
+    conf = config.get(DOMAIN, {})
+    if not conf:
+        return True
+
+    # Make the config available to the oauth2 config flow.
+    hass.data[DOMAIN] = {const.CONFIG: conf}
+
+    return True    
 
 async def async_setup_entry(hass, config_entry):
     """Set the config entry up."""
