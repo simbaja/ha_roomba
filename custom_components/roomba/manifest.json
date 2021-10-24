@@ -3,7 +3,7 @@
   "name": "iRobot Roomba and Braava",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/roomba",
-  "requirements": ["roombasdk==1.7.6"],
+  "requirements": ["roombasdk==1.7.8"],
   "version": "0.9.0",
   "codeowners": ["@pschmitt", "@cyr-ius", "@shenxn"],
   "dhcp": [

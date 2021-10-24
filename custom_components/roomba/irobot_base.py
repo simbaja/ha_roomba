@@ -291,8 +291,8 @@ class IRobotVacuum(IRobotEntity, StateVacuumEntity):
             state_attrs[ATTR_POSITION] = position
 
             #get map information
-            min_c = self.vacuum.min_map_coords
-            max_c = self.vacuum.max_map_coords
+            min_c = self.vacuum.map_min_coords
+            max_c = self.vacuum.map_max_coords
             state_attrs[ATTR_MAP_CURRENT_PMAP] = self.vacuum.current_pmap_id
             state_attrs[ATTR_MAP_MIN_COORDS] = f"({min_c[0]},{min_c[1]})"
             state_attrs[ATTR_MAP_MAX_COORDS] = f"({max_c[0]},{max_c[1]})"
