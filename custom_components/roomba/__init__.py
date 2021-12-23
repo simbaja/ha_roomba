@@ -97,8 +97,6 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Roomba component."""
     conf = config.get(DOMAIN, {})
-    if not conf:
-        return True
 
     # Make the config available for all other objects
     hass.data[DOMAIN] = {CONFIG: conf}
